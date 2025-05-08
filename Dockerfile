@@ -1,20 +1,23 @@
-# ---------- build stage ----------
+######################## build stage ########################
 FROM golang:1.22-alpine AS builder
 WORKDIR /src
 
-# copy go modules first for better build-cache reuse
+# ── Go modules first (better cache) ────────────────────────
 COPY go.mod go.sum ./
 RUN go mod download
 
-# copy the rest of the source and build
+# ── Copy source and compile static binary ──────────────────
 COPY . .
-RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 \
-    go build -ldflags="-s -w" -o /bin/echo-id ./main.go
 
-# ---------- runtime stage ----------
+# The mock-server code listens on 9090 (constant in main.go)
+RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 \
+    go build -ldflags="-s -w" \
+    -o /bin/mock-server ./main.go
+
+####################### runtime stage #######################
 FROM gcr.io/distroless/static-debian11
-COPY --from=builder /bin/echo-id /echo-id
+
+COPY --from=builder /bin/mock-server /mock-server
 
 EXPOSE 9090
-ENTRYPOINT ["/echo-id"]
-    
+ENTRYPOINT ["/mock-server"]
