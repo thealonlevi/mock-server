@@ -1,0 +1,19 @@
+# VCS
+.git
+.github
+
+# IDE / editor noise
+.vscode
+.idea
+*.swp
+
+# Output binaries & test results
+/bin
+*.exe
+*.out
+*.test
+coverage.*
+
+# OS metadata
+.DS_Store
+Thumbs.db
